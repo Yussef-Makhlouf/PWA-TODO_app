@@ -29,6 +29,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Request Notification permission
+    if ('Notification' in window && 'serviceWorker' in navigator) {
+        Notification.requestPermission(status => {
+            console.log('Notification permission status:', status);
+        });
+    } else {
+        console.error('Notifications or Service Worker not supported');
+    }
+
+    const showNotification = (task) => {
+        if (Notification.permission === 'granted') {
+            const options = {
+                body: `Task "${task}" has been added.`,
+                icon: '/icons/icon-192x192.png',
+                vibrate: [100, 50, 100]
+            };
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification('New Task Added!', options)
+                .then(() => console.log('Notification shown successfully'))
+                .catch(err => console.error('Error showing notification:', err));
+            });
+        } else {
+            console.error('Notification permission not granted');
+        }
+    };
+
     addTaskButton.addEventListener('click', () => {
         const task = taskInput.value.trim();
         if (task) {
@@ -36,6 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveTasks();
             renderTasks();
             taskInput.value = '';
+
+            // Show notification when a task is added
+            showNotification(task);
         }
     });
 
